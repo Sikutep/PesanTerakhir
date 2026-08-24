@@ -12,6 +12,8 @@ class MessageRecipient extends Model
         'relationship',
         'wa_number',
         'email',
+        'status',
+        'failed_reason',
     ];
 
     public function message()

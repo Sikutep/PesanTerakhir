@@ -15,7 +15,7 @@ Route::get('/', function () {
 
 // FIX #2: Public recipient route (no auth required, uses Signed URL)
 Route::get('/pesan/{message}', [MessageController::class, 'recipientView'])->name('recipient.public')->middleware('signed');
-Route::post('/pesan/{message}/verify-pin', [MessageController::class, 'verifyPin'])->name('recipient.verifyPin');
+Route::post('/pesan/{message}/verify-pin', [MessageController::class, 'verifyPin'])->name('recipient.verifyPin')->middleware(['signed', 'throttle:5,1']);
 
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
