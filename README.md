@@ -10,7 +10,7 @@ Aplikasi pengelolaan pesan rahasia otomatis berbasis Laravel 11, React (Inertia.
 
 Sistem bot WA akan mengirimkan *ping* periodik kepada user. Jika gagal merespons setelah 3x peringatan + masa tenggang (grace period), sistem otomatis mengirimkan pesan rahasia ke nomor-nomor tujuan yang sudah ditentukan.
 
-## 🆕 Update Terbaru (v1.1.0)
+## 🆕 Update Terbaru (v0.1.0)
 Telah dilakukan perbaikan massal pada sistem keamanan, stabilitas, dan antarmuka pengguna (UI/UX) berdasarkan hasil audit sistem:
 - **Keamanan (P0 Kritis)**: Perlindungan *dispatch* pesan agar tidak salah sasaran untuk pengguna baru, penyimpanan file rahasia yang dipindah ke *private storage* (`local`), verifikasi PIN penerima menggunakan backend endpoint, dan tautan penerima publik tanpa *auth* menggunakan token *hash*.
 - **Peningkatan Fitur (P1)**: Penambahan input email penerima, penanganan performa memory (audio/video *stream cleanup*), perbaikan validasi format file saat *upload*, dan notifikasi sukses/gagal (Toast/Flash Message).
