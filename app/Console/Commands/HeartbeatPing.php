@@ -53,12 +53,7 @@ class HeartbeatPing extends Command
 
                     $message = "Halo {$user->name},\n\nSistem PesanTerakhir.id memastikan Anda baik-baik saja. Silakan klik link berikut untuk konfirmasi (Check-in) bulan ini:\n\n" . route('login') . "\n\nJika tidak ada respon, sistem akan menghitung mundur sesuai pengaturan masa tenggang Anda.";
                     
-                    $payload = json_encode([
-                        'target' => $user->wa_number,
-                        'message' => $message
-                    ]);
-                    
-                    SendWhatsAppMessageJob::dispatch(0, $payload, null, true);
+                    SendWhatsAppMessageJob::forPhone($user->wa_number, $message)->dispatch();
                     $sentCount++;
                 }
             });

@@ -38,7 +38,8 @@ class WhatsAppService
         }
 
         try {
-            // Added timeout(10) and retry logic for robustness
+            // Note: Fonnte API requires the token directly in the Authorization header,
+            // NOT prefixed with 'Bearer '. Thus, we use withHeaders instead of withToken().
             $response = Http::timeout(10)->retry(3, 100)->withHeaders([
                 'Authorization' => $this->token
             ])->post("{$this->baseUrl}/send", $data);
@@ -64,8 +65,6 @@ class WhatsAppService
      */
     public function sendPing(string $target, string $userName): bool
     {
-        // Notice: This is now just generating message and passing to queue normally, but here we can keep the old format
-        // if still called synchronously. However, we'll wrap it in a Job.
         $message = "Halo {$userName},\n\nSistem PesanTerakhir.id memastikan Anda baik-baik saja. Silakan klik link berikut untuk konfirmasi (Check-in) bulan ini:\n\n" . route('login') . "\n\nJika tidak ada respon, sistem akan menghitung mundur sesuai pengaturan masa tenggang Anda.";
         return $this->sendMessage($target, $message);
     }
