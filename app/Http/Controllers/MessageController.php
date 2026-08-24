@@ -182,15 +182,10 @@ class MessageController extends Controller
         return response()->json(['valid' => false, 'message' => 'PIN salah.'], 422);
     }
 
-    // Public recipient view (no auth required, uses token)
+    // Public recipient view (no auth required, uses signed URL)
     public function recipientView(Request $request, Message $message)
     {
-        $token = $request->query('token');
-        $expectedToken = hash('sha256', $message->id . $message->created_at);
-
-        if ($token !== $expectedToken) {
-            abort(403, 'Token tidak valid.');
-        }
+        // Token validation is now handled by the 'signed' middleware in web.php
 
         $message->load('recipients');
         $recipient = $message->recipients->first();

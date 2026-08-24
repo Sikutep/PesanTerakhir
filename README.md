@@ -1,20 +1,15 @@
 # PesanTerakhir.id
 
-Aplikasi pengelolaan pesan rahasia otomatis berbasis Laravel 11, React (Inertia.js), dan Tailwind CSS v4 dengan tema Dark Mode & Glassmorphism.
+Aplikasi pengelolaan pesan rahasia otomatis berbasis Laravel 13, React (Inertia.js), dan Tailwind CSS v4 dengan tema Dark Mode & Glassmorphism.
 
 ---
 
-## 📋 Deskripsi
-
-**PesanTerakhir.id** adalah platform "Dead Man's Switch" untuk pesan wasiat digital berbasis WhatsApp. User menulis pesan teks/audio/video, menentukan nomor WA penerima, dan mengatur trigger: "Kirim pesan ini jika saya tidak melakukan check-in selama X hari berturut-turut."
-
-Sistem bot WA akan mengirimkan *ping* periodik kepada user. Jika gagal merespons setelah 3x peringatan + masa tenggang (grace period), sistem otomatis mengirimkan pesan rahasia ke nomor-nomor tujuan yang sudah ditentukan.
-
-## 🆕 Update Terbaru (v0.1.0)
+## 🆕 Update Terbaru (v1.1.0)
 Telah dilakukan perbaikan massal pada sistem keamanan, stabilitas, dan antarmuka pengguna (UI/UX) berdasarkan hasil audit sistem:
-- **Keamanan (P0 Kritis)**: Perlindungan *dispatch* pesan agar tidak salah sasaran untuk pengguna baru, penyimpanan file rahasia yang dipindah ke *private storage* (`local`), verifikasi PIN penerima menggunakan backend endpoint, dan tautan penerima publik tanpa *auth* menggunakan token *hash*.
+- **Keamanan (P0 Kritis)**: Perlindungan *dispatch* pesan agar tidak salah sasaran untuk pengguna baru, penyimpanan file rahasia yang dipindah ke *private storage* (`local`), verifikasi PIN penerima menggunakan backend endpoint, dan tautan penerima publik tanpa *auth* menggunakan **Laravel Signed URLs** yang memiliki expiry 72 jam demi keamanan.
 - **Peningkatan Fitur (P1)**: Penambahan input email penerima, penanganan performa memory (audio/video *stream cleanup*), perbaikan validasi format file saat *upload*, dan notifikasi sukses/gagal (Toast/Flash Message).
 - **UI/UX & Stabilitas (P2)**: Penyesuaian layout ponsel (*responsive design*), *state loading* saat pengiriman form, terjemahan label ke Bahasa Indonesia, dan perbaikan tampilan kalender tenggang waktu.
+- **Skalabilitas & Keandalan (Sprint 4)**: Migrasi dari pengiriman *synchronous* berbasis Cron loop ke pemrosesan *asynchronous* menggunakan Laravel Queues (`SendWhatsAppMessageJob`) dengan chunking memori, retry, dan validasi standar E.164.
 
 ---
 
@@ -61,25 +56,33 @@ Untuk mengirim pesan WhatsApp (notifikasi ping & pesan rahasia), aplikasi menggu
 FONNTE_TOKEN=token-anda-disini
 ```
 
-> **Catatan**: Jika ingin bermigrasi ke `whatsapp-web.js`, buat microservice Node.js terpisah yang mengekspos endpoint API, lalu ubah `baseUrl` di `app/Services/WhatsAppService.php`.
+> **Catatan**: Pengiriman menggunakan Laravel Queues di backend untuk menghindari blocking cron.
 
-### 5. Scheduler (Cron Job)
-Aplikasi bergantung pada Laravel Task Scheduler untuk:
-- **HeartbeatPing** (bulanan): Mengirim ping konfirmasi ke user via WA
-- **DispatchMessages** (harian): Mengecek user yang melewati batas `trigger_days` dan mengirim pesan ke penerima
+### 5. Worker & Scheduler (Cron Job)
+Aplikasi bergantung pada Laravel Task Scheduler dan Queue Worker:
+- **HeartbeatPing** (bulanan): Mengirim ping konfirmasi ke user via WA. Filtered by ping_schedule and checking status.
+- **DispatchMessages** (harian): Mengecek user yang melewati batas `trigger_days` dan men-dispatch pesan ke queue worker.
+- **Queue Worker**: Memproses API call ke WA secara paralel dengan Retry/Backoff.
 
-Pada server production, tambahkan cron job:
+Pada server production, jalankan Queue Worker dengan Supervisor dan Cron Scheduler:
 ```bash
+# Cron:
 * * * * * cd /path-ke-project && php artisan schedule:run >> /dev/null 2>&1
+
+# Queue Worker (jalankan via supervisor/pm2):
+php artisan queue:work --tries=3 --backoff=5,10,30
 ```
 
-### 6. Menjalankan Aplikasi
+### 6. Menjalankan Aplikasi Lokal
 ```bash
 # Terminal 1 — Backend
 php artisan serve
 
 # Terminal 2 — Frontend (Vite dev server)
 npm run dev
+
+# Terminal 3 — Queue Worker (WAJAR AKTIF AGAR PESAN TERKIRIM)
+php artisan queue:work
 ```
 
 Kunjungi **http://localhost:8000**, buat akun (Register), dan mulai menggunakan Brankas Pesan.
@@ -91,7 +94,7 @@ Kunjungi **http://localhost:8000**, buat akun (Register), dan mulai menggunakan 
 ### Tech Stack
 | Layer | Teknologi |
 |-------|-----------|
-| Backend | Laravel 11 |
+| Backend | Laravel 13 |end | Laravel 11 |
 | Frontend | React 18 + TypeScript (Inertia.js) |
 | Styling | Tailwind CSS v4 + Custom Glassmorphism |
 | Database | SQLite (default) / MySQL / PostgreSQL |

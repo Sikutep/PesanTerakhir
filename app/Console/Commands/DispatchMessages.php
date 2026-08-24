@@ -5,68 +5,78 @@ namespace App\Console\Commands;
 use Illuminate\Console\Command;
 use App\Models\User;
 use App\Models\CheckIn;
-use App\Models\Message;
-use App\Services\WhatsAppService;
+use Illuminate\Support\Facades\URL;
+use App\Jobs\SendWhatsAppMessageJob;
 
 class DispatchMessages extends Command
 {
     protected $signature = 'app:dispatch-messages';
     protected $description = 'Dispatch messages for users who have exceeded their trigger days';
 
-    public function handle(WhatsAppService $waService)
+    public function handle()
     {
-        // Eager-load to avoid N+1
-        $users = User::with(['messages' => function($q) {
-            $q->where('status', 'active')->with('recipients');
-        }])->get();
-
         $dispatched = 0;
 
-        foreach ($users as $user) {
-            // Skip users with no active messages
-            if ($user->messages->isEmpty()) continue;
+        // Use chunkById to prevent OOM
+        User::whereHas('messages', function($q) {
+            $q->where('status', 'active');
+        })->chunkById(100, function ($users) use (&$dispatched) {
+            
+            foreach ($users as $user) {
+                // Eager load messages for this specific user
+                $user->load(['messages' => function($q) {
+                    $q->where('status', 'active')->with('recipients');
+                }]);
 
-            $lastCheckIn = CheckIn::where('user_id', $user->id)
-                ->where('status', 'success')
-                ->latest('checked_in_at')
-                ->first();
+                if ($user->messages->isEmpty()) continue;
 
-            // FIX #1: Use user creation date as fallback instead of 999
-            // This prevents dispatching messages for brand-new users
-            $referenceDate = $lastCheckIn?->checked_in_at ?? $user->created_at;
-            $daysSinceLastActivity = (int) ceil($referenceDate->floatDiffInDays(now()));
+                $lastCheckIn = CheckIn::where('user_id', $user->id)
+                    ->where('status', 'success')
+                    ->latest('checked_in_at')
+                    ->first();
 
-            // FIX: Check grace period before dispatching
-            $gracePeriodDays = $user->grace_period_enabled ? 7 : 0;
+                // Prevent dispatching for brand-new users
+                $referenceDate = $lastCheckIn?->checked_in_at ?? $user->created_at;
+                $daysSinceLastActivity = (int) ceil($referenceDate->floatDiffInDays(now()));
 
-            foreach ($user->messages as $message) {
-                $totalTriggerDays = $message->trigger_days + $gracePeriodDays;
+                $gracePeriodDays = $user->grace_period_enabled ? 7 : 0;
 
-                if ($daysSinceLastActivity >= $totalTriggerDays) {
-                    // FIX: Alert guardian first if configured
-                    if ($user->guardian_contact) {
-                        $guardianText = "⚠️ PesanTerakhir.id — Pemberitahuan Darurat\n\nHalo, Anda tercatat sebagai Kontak Wali untuk {$user->name}.\n\nYang bersangkutan tidak merespons check-in selama {$daysSinceLastActivity} hari. Sistem akan mengirimkan pesan rahasia mereka ke penerima yang ditentukan.\n\nJika ini kesalahan, segera hubungi yang bersangkutan.";
-                        $waService->sendMessage($user->guardian_contact, $guardianText);
-                    }
+                foreach ($user->messages as $message) {
+                    $totalTriggerDays = $message->trigger_days + $gracePeriodDays;
 
-                    // Dispatch to recipients
-                    foreach ($message->recipients as $recipient) {
-                        // FIX #2: Use public token-based URL instead of auth-protected route
-                        $link = url("/pesan/{$message->id}?token=" . hash('sha256', $message->id . $message->created_at));
-                        $text = "Pesan otomatis dari PesanTerakhir.id\n\nHalo {$recipient->name},\n\nSeseorang bernama {$user->name} telah meninggalkan pesan rahasia untuk Anda. Buka tautan berikut untuk membaca:\n\n{$link}\n\n*Jika pesan ini dilindungi PIN, tanyakan pada kerabat bersangkutan.";
-
-                        try {
-                            $waService->sendMessage($recipient->wa_number, $text);
-                        } catch (\Exception $e) {
-                            $this->error("Failed to send to {$recipient->wa_number}: {$e->getMessage()}");
+                    if ($daysSinceLastActivity >= $totalTriggerDays) {
+                        
+                        // Alert guardian first if configured
+                        if ($user->guardian_contact) {
+                            $guardianText = "⚠️ PesanTerakhir.id — Pemberitahuan Darurat\n\nHalo, Anda tercatat sebagai Kontak Wali untuk {$user->name}.\n\nYang bersangkutan tidak merespons check-in selama {$daysSinceLastActivity} hari. Sistem akan mulai mengirimkan pesan rahasia mereka ke penerima.\n\nJika ini kesalahan, segera hubungi yang bersangkutan.";
+                            
+                            $payload = json_encode([
+                                'target' => $user->guardian_contact,
+                                'message' => $guardianText
+                            ]);
+                            SendWhatsAppMessageJob::dispatch(0, $payload, null, true);
                         }
+
+                        // Dispatch to recipients via Job Queue
+                        foreach ($message->recipients as $recipient) {
+                            // Update recipient status to pending before queueing
+                            $recipient->update(['status' => 'pending']);
+
+                            // Generate Signed URL expiring in 72 hours
+                            $link = URL::signedRoute('recipient.public', ['message' => $message->id], now()->addHours(72));
+                            
+                            $text = "Pesan otomatis dari PesanTerakhir.id\n\nHalo {$recipient->name},\n\nSeseorang bernama {$user->name} telah meninggalkan pesan rahasia untuk Anda. Buka tautan berikut (berlaku 72 jam) untuk membaca:\n\n{$link}\n\n*Jika pesan ini dilindungi PIN, tanyakan pada kerabat bersangkutan.";
+
+                            SendWhatsAppMessageJob::dispatch($recipient->id, $text, $message->id);
+                        }
+                        
+                        // Note: Message status is now updated inside the Job once all recipients are processed.
+                        $dispatched++;
                     }
-                    $message->update(['status' => 'dispatched']);
-                    $dispatched++;
                 }
             }
-        }
+        });
 
-        $this->info("Dispatched {$dispatched} messages.");
+        $this->info("Queued {$dispatched} message dispatch jobs.");
     }
 }

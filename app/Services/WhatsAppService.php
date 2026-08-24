@@ -12,7 +12,6 @@ class WhatsAppService
 
     public function __construct()
     {
-        // FIX: Use config() instead of env() for production compatibility
         $this->token = config('services.fonnte.token', '');
     }
 
@@ -26,8 +25,7 @@ class WhatsAppService
             return false;
         }
 
-        // Sanitize phone number (remove spaces, dashes, brackets)
-        $target = preg_replace('/[\s\-\(\)]/', '', $target);
+        $target = $this->sanitizePhone($target);
 
         $data = [
             'target' => $target,
@@ -40,21 +38,23 @@ class WhatsAppService
         }
 
         try {
-            $response = Http::withHeaders([
+            // Added timeout(10) and retry logic for robustness
+            $response = Http::timeout(10)->retry(3, 100)->withHeaders([
                 'Authorization' => $this->token
             ])->post("{$this->baseUrl}/send", $data);
 
             $result = $response->json();
 
             if ($response->successful() && isset($result['status']) && $result['status'] === true) {
+                Log::info("WhatsApp message sent successfully to {$target}");
                 return true;
             }
 
-            Log::error('Fonnte API Error: ' . json_encode($result));
+            Log::error("Fonnte API Error for {$target}: " . json_encode($result));
             return false;
 
         } catch (\Exception $e) {
-            Log::error('Fonnte Exception: ' . $e->getMessage());
+            Log::error("Fonnte Exception for {$target}: " . $e->getMessage());
             return false;
         }
     }
@@ -64,7 +64,25 @@ class WhatsAppService
      */
     public function sendPing(string $target, string $userName): bool
     {
+        // Notice: This is now just generating message and passing to queue normally, but here we can keep the old format
+        // if still called synchronously. However, we'll wrap it in a Job.
         $message = "Halo {$userName},\n\nSistem PesanTerakhir.id memastikan Anda baik-baik saja. Silakan klik link berikut untuk konfirmasi (Check-in) bulan ini:\n\n" . route('login') . "\n\nJika tidak ada respon, sistem akan menghitung mundur sesuai pengaturan masa tenggang Anda.";
         return $this->sendMessage($target, $message);
+    }
+
+    /**
+     * Sanitize phone number to E.164-like format (without +)
+     */
+    public function sanitizePhone(string $phone): string
+    {
+        // Remove spaces, dashes, brackets, and +
+        $phone = preg_replace('/[\s\-\(\)\+]/', '', $phone);
+        
+        // Convert 08... to 628...
+        if (str_starts_with($phone, '0')) {
+            $phone = '62' . substr($phone, 1);
+        }
+
+        return $phone;
     }
 }
