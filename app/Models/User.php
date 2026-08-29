@@ -16,6 +16,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'google_id',
         'wa_number',
         'guardian_contact',
         'ping_schedule',

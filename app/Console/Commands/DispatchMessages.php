@@ -44,13 +44,19 @@ class DispatchMessages extends Command
                 foreach ($user->messages as $message) {
                     $totalTriggerDays = $message->trigger_days + $gracePeriodDays;
 
+                    // Early Warning to Guardian (3 days before trigger)
+                    if ($daysSinceLastActivity == ($totalTriggerDays - 3) && $user->guardian_contact) {
+                        $warningText = "⚠️ PesanTerakhir.id — Peringatan Dini\n\nHalo, Anda tercatat sebagai Kontak Wali untuk {$user->name}.\n\nYang bersangkutan belum merespons sapaan sistem (Check-in). Dalam 3 hari, sistem akan mulai mengirimkan pesan rahasia mereka ke penerima.\n\nMohon periksa kondisinya dan ingatkan untuk segera melakukan 'Lapor Mandiri' di aplikasi jika ini adalah sebuah kesalahan.";
+                        dispatch(SendWhatsAppMessageJob::forPhone($user->guardian_contact, $warningText));
+                    }
+
                     if ($daysSinceLastActivity >= $totalTriggerDays) {
                         
-                        // Alert guardian first if configured
+                        // Alert guardian first if configured (Final alert)
                         if ($user->guardian_contact) {
-                            $guardianText = "⚠️ PesanTerakhir.id — Pemberitahuan Darurat\n\nHalo, Anda tercatat sebagai Kontak Wali untuk {$user->name}.\n\nYang bersangkutan tidak merespons check-in selama {$daysSinceLastActivity} hari. Sistem akan mulai mengirimkan pesan rahasia mereka ke penerima.\n\nJika ini kesalahan, segera hubungi yang bersangkutan.";
+                            $guardianText = "⚠️ PesanTerakhir.id — Pemberitahuan Darurat\n\nHalo, Anda tercatat sebagai Kontak Wali untuk {$user->name}.\n\nYang bersangkutan tidak merespons check-in selama {$daysSinceLastActivity} hari. Sistem akan mulai mengirimkan pesan rahasia mereka ke penerima hari ini.\n\nJika ini kesalahan, segera hubungi yang bersangkutan.";
                             
-                            SendWhatsAppMessageJob::forPhone($user->guardian_contact, $guardianText)->dispatch();
+                            dispatch(SendWhatsAppMessageJob::forPhone($user->guardian_contact, $guardianText));
                         }
 
                         // Dispatch to recipients via Job Queue
@@ -63,7 +69,7 @@ class DispatchMessages extends Command
                             
                             $text = "Pesan otomatis dari PesanTerakhir.id\n\nHalo {$recipient->name},\n\nSeseorang bernama {$user->name} telah meninggalkan pesan rahasia untuk Anda. Buka tautan berikut (berlaku 72 jam) untuk membaca:\n\n{$link}\n\n*Jika pesan ini dilindungi PIN, tanyakan pada kerabat bersangkutan.";
 
-                            SendWhatsAppMessageJob::forRecipient($recipient->id, $message->id, $text)->dispatch();
+                            dispatch(SendWhatsAppMessageJob::forRecipient($recipient->id, $message->id, $text));
                         }
                         
                         // Note: Message status is now updated inside the Job once all recipients are processed.

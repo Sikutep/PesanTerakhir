@@ -110,27 +110,57 @@ export default function Dashboard({ auth, messages, stats, guardian, lastCheckIn
             </div>
           </header>
 
-          {/* Check-in Banner / Card */}
-          <div className="glass-card rounded-2xl p-5 md:p-6 bg-sage-50 flex flex-col md:flex-row md:items-center justify-between gap-4 relative overflow-hidden">
-            <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none md:block hidden">
-              <Icon.Check />
-            </div>
-            <div className="flex items-center gap-4 z-10">
-              <div className="w-12 h-12 rounded-full bg-sage-200 flex items-center justify-center text-sage-600 flex-shrink-0">
+          {/* Check-in Banner / Card (2 Metode) */}
+          <div className="grid md:grid-cols-2 gap-4 mb-6">
+            {/* Metode 1: Lapor Mandiri */}
+            <div className="glass-card rounded-2xl p-5 md:p-6 bg-sage-50 flex flex-col justify-between gap-4 relative overflow-hidden">
+              <div className="absolute top-0 right-0 p-4 opacity-10 pointer-events-none md:block hidden">
                 <Icon.Check />
               </div>
-              <div>
-                <h3 className="text-lg md:text-xl font-bold text-text-main mb-1">
-                  {lastCheckIn ? 'Terima kasih atas sapaan Anda hari ini.' : 'Selamat datang. Mari beri kabar pertama Anda.'}
-                </h3>
-                {lastCheckIn && (
-                  <p className="text-sm text-text-muted">Kami akan menunggu sapaan Anda berikutnya dalam {stats.intervalDays || 60} hari ({stats.nextCheckIn}).</p>
-                )}
+              <div className="flex items-start gap-4 z-10">
+                <div className="w-12 h-12 rounded-full bg-sage-200 flex items-center justify-center text-sage-600 flex-shrink-0">
+                  <Icon.Check />
+                </div>
+                <div>
+                  <h3 className="text-lg md:text-xl font-bold text-text-main mb-1">
+                    Lapor Mandiri
+                  </h3>
+                  <p className="text-sm text-text-muted mb-2">
+                    {lastCheckIn ? 'Terima kasih atas sapaan Anda hari ini.' : 'Selamat datang. Mari beri kabar pertama Anda.'}
+                  </p>
+                  {lastCheckIn && (
+                    <p className="text-xs font-bold text-sage-700">Menunggu sapaan Anda berikutnya dalam {stats.intervalDays || 60} hari ({stats.nextCheckIn}).</p>
+                  )}
+                </div>
               </div>
+              <button onClick={checkIn} disabled={isCheckingIn} className="w-full btn-primary py-3 px-6 rounded-full font-bold text-sm z-10 shadow-sm transition-all disabled:opacity-50 mt-2">
+                {isCheckingIn ? 'Menyapa...' : 'Beri Kabar Sekarang'}
+              </button>
             </div>
-            <button onClick={checkIn} disabled={isCheckingIn} className="w-full md:w-auto btn-primary py-3 px-6 rounded-full font-bold text-sm whitespace-nowrap z-10 shadow-sm transition-all disabled:opacity-50">
-              {isCheckingIn ? 'Menyapa...' : 'Beri Kabar Sekarang'}
-            </button>
+
+            {/* Metode 2: Pemantauan Otomatis & Wali */}
+            <div className="glass-card rounded-2xl p-5 md:p-6 bg-warm-50 border border-warm-200 flex flex-col justify-between gap-4 relative overflow-hidden">
+              <div className="flex items-start gap-4 z-10">
+                <div className="w-12 h-12 rounded-full bg-warm-200 flex items-center justify-center text-text-muted flex-shrink-0">
+                  <Icon.User />
+                </div>
+                <div>
+                  <h3 className="text-lg md:text-xl font-bold text-text-main mb-1">
+                    Pemantauan Wali
+                  </h3>
+                  <p className="text-sm text-text-muted mb-2">
+                    Jika Anda lupa memberi kabar, kami akan menghubungi WhatsApp Wali Anda secara otomatis.
+                  </p>
+                  <div className="bg-white px-3 py-2 rounded-lg border border-warm-200 inline-block mt-1">
+                    <p className="text-xs text-text-muted font-bold">Kontak Wali Aktif:</p>
+                    <p className="text-sm font-bold text-text-main">{guardian?.name || "Belum diatur"} <span className="font-normal text-text-muted">({guardian?.phone || "-"})</span></p>
+                  </div>
+                </div>
+              </div>
+              <Link href={route('settings')} className="w-full bg-white border border-warm-200 hover:bg-warm-100 text-text-main py-3 px-6 rounded-full font-bold text-sm text-center z-10 transition-colors mt-2">
+                Atur Kontak Wali
+              </Link>
+            </div>
           </div>
 
           {/* Stats Desktop */}
@@ -504,18 +534,18 @@ function CreateWizard({ onCancel, initialData }: { onCancel: () => void, initial
             <div key={i} className={`h-1.5 rounded-full transition-all duration-300 ${i === step ? "w-6 bg-sage-500" : i < step ? "w-2 bg-sage-300" : "w-2 bg-warm-200"}`} />
           ))}
         </div>
-        <div className="text-xs text-text-muted w-12 text-right">Langkah {step}/3</div>
+        <div className="text-sm text-text-muted w-20 text-right font-medium">Langkah {step}/3</div>
       </div>
 
       <div className="glass-card rounded-2xl p-6 md:p-8">
-        {step === 1 && (
+        {step === 2 && (
           <div className="slide-up">
             <h3 className="text-xl font-bold text-text-main mb-1">{isEdit ? 'Edit Pesan' : 'Tulis Pesan'}</h3>
-            <p className="text-sm text-text-muted mb-6">Sampaikan apa yang ada di hati Anda.</p>
+            <p className="text-base text-text-muted mb-6">Sampaikan apa yang ada di hati Anda. Pesan suara atau video sangat direkomendasikan.</p>
             
             <div className="bg-sage-50 border border-sage-200 rounded-xl p-4 mb-6">
-              <p className="text-xs font-bold text-sage-700 mb-2">💡 Inspirasi Pesan (Jika Anda bingung harus menulis apa):</p>
-              <ul className="text-xs text-sage-600 space-y-1 ml-4 list-disc">
+              <p className="text-sm font-bold text-sage-700 mb-2">💡 Inspirasi (Bila bingung mau bilang apa):</p>
+              <ul className="text-sm text-sage-600 space-y-1 ml-4 list-disc">
                 <li>Adakah cerita, rahasia, atau permintaan maaf yang belum sempat tersampaikan?</li>
                 <li>Apa harapan terbesar Anda untuk masa depannya?</li>
                 <li>Pelajaran hidup apa yang ingin Anda wariskan?</li>
@@ -619,123 +649,84 @@ function CreateWizard({ onCancel, initialData }: { onCancel: () => void, initial
           </div>
         )}
 
-        {step === 2 && (
+        {step === 1 && (
           <div className="slide-up">
-            <h3 className="text-xl font-bold text-text-main mb-1">Untuk Siapa?</h3>
-            <p className="text-sm text-text-muted mb-6">Siapa yang berhak membaca pesan ini?</p>
+            <h3 className="text-2xl font-bold text-text-main mb-2">Untuk Siapa Pesan Ini?</h3>
+            <p className="text-base text-text-muted mb-8">Pilih atau ketik kontak yang akan menerima pesan ini.</p>
             
-            <div className="space-y-4">
+            <div className="space-y-6">
               <div>
-                <label className="block text-xs font-bold text-text-muted mb-2">Nama Lengkap</label>
+                <label className="block text-base font-bold text-text-main mb-3">Nama Panggilan / Lengkap</label>
                 <input 
                   type="text" 
-                  className="w-full bg-white border border-warm-200 rounded-xl px-4 py-3 text-text-main text-sm focus:border-sage-400 focus:ring focus:ring-sage-200 outline-none"
+                  className="w-full bg-white border border-warm-200 rounded-xl px-4 py-4 text-text-main text-base focus:border-sage-400 focus:ring focus:ring-sage-200 outline-none shadow-sm"
+                  placeholder="Cth: Budi, Anakku Tersayang..."
                   value={data.recipientName}
                   onChange={e => setData({...data, recipientName: e.target.value})}
                 />
               </div>
 
               <div>
-                <label className="block text-xs font-bold text-text-muted mb-2">Hubungan</label>
-                <select 
-                  className="w-full bg-white border border-warm-200 rounded-xl px-4 py-3 text-text-main text-sm focus:border-sage-400 focus:ring focus:ring-sage-200 outline-none"
-                  value={data.recipientRelationship}
-                  onChange={e => setData({...data, recipientRelationship: e.target.value})}
-                >
-                  {relationships.map(rel => (
-                     <option key={rel} value={rel}>{rel}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-text-muted mb-2">Email (Opsional)</label>
-                <input 
-                  type="email" 
-                  className="w-full bg-white border border-warm-200 rounded-xl px-4 py-3 text-text-main text-sm focus:border-sage-400 focus:ring focus:ring-sage-200 outline-none"
-                  placeholder="email@contoh.com"
-                  value={data.recipientEmail}
-                  onChange={e => setData({...data, recipientEmail: e.target.value})}
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-bold text-text-muted mb-2">Nomor WhatsApp</label>
+                <label className="block text-base font-bold text-text-main mb-3">Nomor WhatsApp Penerima</label>
                 <input 
                   type="tel" 
-                  className="w-full bg-white border border-warm-200 rounded-xl px-4 py-3 text-text-main text-sm focus:border-sage-400 focus:ring focus:ring-sage-200 outline-none"
-                  placeholder="0812..."
+                  className="w-full bg-white border border-warm-200 rounded-xl px-4 py-4 text-text-main text-base focus:border-sage-400 focus:ring focus:ring-sage-200 outline-none shadow-sm"
+                  placeholder="08123456789..."
                   value={data.recipientPhone}
                   onChange={e => setData({...data, recipientPhone: e.target.value})}
                 />
+                <p className="text-sm text-text-muted mt-2">Kami hanya akan menghubungi nomor ini saat tiba waktunya.</p>
               </div>
             </div>
             
-            <div className="flex gap-3 mt-8">
-              <button onClick={handlePrev} className="btn-ghost px-6 rounded-full font-bold">Kembali</button>
-              <button onClick={handleNext} disabled={!data.recipientName || !data.recipientPhone} className="flex-1 btn-primary py-3 rounded-full disabled:opacity-50">Lanjut</button>
+            <div className="mt-10">
+              <button onClick={handleNext} disabled={!data.recipientName || !data.recipientPhone} className="w-full btn-primary py-4 rounded-full font-bold text-base disabled:opacity-50 shadow-md">
+                Selanjutnya
+              </button>
             </div>
           </div>
         )}
 
         {step === 3 && (
           <div className="slide-up">
-            <h3 className="text-xl font-bold text-text-main mb-1">Pengaturan Privasi</h3>
-            <p className="text-sm text-text-muted mb-4">Tentukan kapan dan bagaimana pesan ini dapat diakses.</p>
-            
-            <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 flex items-start gap-3">
-              <div className="text-amber-500 mt-0.5">
-                <Icon.Lock />
-              </div>
-              <div>
-                <p className="text-xs font-bold text-amber-700 mb-1">Di-enkripsi Tingkat Militer</p>
-                <p className="text-xs text-amber-600 leading-relaxed">Pesan Anda sangat aman dan bahkan tidak bisa dibaca oleh sistem kami. Pesan ini hanya akan terbuka untuk penerima yang Anda tuju pada saat yang tepat.</p>
-              </div>
-            </div>
+            <h3 className="text-2xl font-bold text-text-main mb-2">Kapan Pesan Ini Dikirim?</h3>
+            <p className="text-base text-text-muted mb-6">Pesan ini akan otomatis terkirim jika Anda tidak memberi kabar ke kami dalam jangka waktu berikut:</p>
             
             <div className="space-y-6">
-              <div>
-                <label className="block text-xs font-bold text-text-muted mb-3">Waktu Pengiriman (Jika Anda tidak memberi kabar)</label>
-                <div className="grid grid-cols-3 gap-3">
-                  {[30, 60, 90].map(days => (
-                    <button 
-                      key={days}
-                      onClick={() => setData({...data, triggerDays: days as 30|60|90})}
-                      className={`py-3 rounded-xl text-sm font-bold transition-all ${data.triggerDays === days ? 'bg-sage-100 text-sage-600 border border-sage-300' : 'bg-white border border-warm-200 text-text-muted hover:border-warm-300'}`}
-                    >
-                      {days} Hari
-                    </button>
-                  ))}
-                </div>
+              <div className="space-y-4">
+                {[
+                  { value: 30, label: 'Setelah 30 hari saya tidak ada kabar' },
+                  { value: 60, label: 'Setelah 60 hari saya tidak ada kabar' },
+                  { value: 90, label: 'Setelah 90 hari saya tidak ada kabar' },
+                ].map(option => (
+                  <label key={option.value} className={`flex items-center gap-4 p-5 rounded-2xl cursor-pointer transition-all border-2 ${data.triggerDays === option.value ? 'bg-sage-50 border-sage-400 shadow-md' : 'bg-white border-warm-200 hover:bg-warm-50'}`}>
+                    <input 
+                      type="radio" 
+                      name="triggerDays" 
+                      value={option.value} 
+                      checked={data.triggerDays === option.value}
+                      onChange={() => setData({...data, triggerDays: option.value as 30|60|90})}
+                      className="w-6 h-6 text-sage-600 focus:ring-sage-500"
+                    />
+                    <span className="text-base font-bold text-text-main">{option.label}</span>
+                  </label>
+                ))}
               </div>
               
-              <div>
-                <label className="block text-xs font-bold text-text-muted mb-2">Pertanyaan Personal (Opsional)</label>
-                <p className="text-xs text-text-muted mb-3 leading-relaxed">Berikan pertanyaan yang hanya diketahui oleh Anda dan penerima sebagai kunci tambahan.</p>
-                <div className="space-y-3">
-                  <input 
-                    type="text" 
-                    className="w-full bg-white border border-warm-200 rounded-xl px-4 py-3 text-text-main text-sm focus:border-sage-400 focus:ring focus:ring-sage-200 outline-none"
-                    placeholder="Contoh: Apa nama hewan peliharaan pertama kita?"
-                    value={data.securityQuestion}
-                    onChange={e => setData({...data, securityQuestion: e.target.value})}
-                  />
-                  {data.securityQuestion && (
-                    <input 
-                      type="text" 
-                      className="w-full bg-white border border-warm-200 rounded-xl px-4 py-3 text-text-main text-sm focus:border-sage-400 focus:ring focus:ring-sage-200 outline-none"
-                      placeholder="Jawaban dari pertanyaan di atas"
-                      value={data.securityAnswer}
-                      onChange={e => setData({...data, securityAnswer: e.target.value})}
-                    />
-                  )}
+              <div className="bg-amber-50 border border-amber-200 rounded-xl p-5 flex items-start gap-4">
+                <div className="text-amber-500 mt-1">
+                  <Icon.Lock />
+                </div>
+                <div>
+                  <p className="text-sm font-bold text-amber-800 mb-1.5">Rahasia Anda 100% Aman</p>
+                  <p className="text-sm text-amber-700 leading-relaxed">Sistem kami tidak dapat membaca isi pesan Anda sama sekali. Pesan hanya akan diserahkan tepat pada waktunya.</p>
                 </div>
               </div>
             </div>
             
             <div className="flex gap-3 mt-8">
               <button onClick={handlePrev} className="btn-ghost px-6 rounded-full font-bold">Kembali</button>
-              <button onClick={handleSubmit} disabled={isSubmitting} className="flex-1 btn-primary py-3 rounded-full flex items-center justify-center gap-2 disabled:opacity-50">
+              <button onClick={handleSubmit} disabled={isSubmitting} className="flex-1 btn-primary py-4 rounded-full flex items-center justify-center gap-2 disabled:opacity-50 font-bold text-base shadow-md">
                 <Icon.Lock /> {isSubmitting ? 'Menyimpan...' : (isEdit ? 'Perbarui Pesan' : 'Simpan Pesan')}
               </button>
             </div>

@@ -21,10 +21,10 @@ class SendWhatsAppMessageJob implements ShouldQueue
     public $tries = 3;
     public $backoff = [5, 10, 30];
 
-    protected ?int $recipientId;
-    protected string $text;
-    protected ?int $messageId;
-    protected ?string $targetPhone;
+    public ?int $recipientId;
+    public string $text;
+    public ?int $messageId;
+    public ?string $targetPhone;
 
     /**
      * Create a new job instance.

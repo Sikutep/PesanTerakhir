@@ -49,21 +49,23 @@ export default function Welcome({ auth }: PageProps<{}>) {
                 {/* Hero Section */}
                 <main className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-16 md:py-24">
                     <div className="text-center max-w-3xl mx-auto slide-up">
-                        <h2 className="text-4xl md:text-6xl font-serif text-text-main mb-6 leading-tight">
-                            Titipkan pesan terakhir Anda untuk orang tersayang dengan aman
+                        <h2 className="text-4xl md:text-5xl font-serif text-text-main mb-6 leading-tight">
+                            Banyak memori indah yang pantas untuk dikenang selamanya.
                         </h2>
                         <p className="text-lg text-text-muted mb-10 leading-relaxed">
-                            Kami percaya setiap kata bermakna. Simpan pesan teks, suara, atau video Anda dengan tenang. 
-                            Sistem kami akan menjaga pesan ini dan hanya mengirimkannya saat Anda sudah tidak lagi bisa menyampaikannya sendiri.
+                            Mari simpan suara, senyum, dan kata-kata Anda di sini untuk mereka yang Anda sayangi.
+                            Sistem kami akan menjaga Kotak Kenangan ini dan menyampaikannya saat Anda sudah tak lagi bersama mereka.
                         </p>
                         <div className="flex flex-col sm:flex-row justify-center items-center gap-4">
                             {!auth.user && (
-                                <Link
-                                    href={route('register')}
-                                    className="btn-primary px-8 py-4 text-lg w-full sm:w-auto"
-                                >
-                                    Buat Kotak Kenangan
-                                </Link>
+                                <>
+                                    <a href={route('google.login')} className="flex items-center justify-center gap-2 bg-white text-gray-700 font-bold border border-gray-300 shadow-sm rounded-full px-8 py-4 text-lg hover:bg-gray-50 transition-colors w-full sm:w-auto">
+                                        <svg className="w-5 h-5" viewBox="0 0 24 24">
+                                            <path fill="currentColor" d="M21.35 11.1h-9.17v2.73h6.51c-.33 3.81-3.5 5.44-6.5 5.44C8.36 19.27 5 16.25 5 12c0-4.1 3.2-7.27 7.2-7.27 3.09 0 4.9 1.97 4.9 1.97L19 4.72S16.56 2 12.1 2C6.42 2 2.03 6.8 2.03 12c0 5.05 4.13 10 10.22 10 5.35 0 9.25-3.67 9.25-9.09 0-1.15-.15-1.81-.15-1.81z"/>
+                                        </svg>
+                                        Masuk dengan Google
+                                    </a>
+                                </>
                             )}
                             <a href="#cara-kerja" className="btn-ghost px-8 py-4 text-lg w-full sm:w-auto flex items-center justify-center">
                                 Pelajari Cara Kerjanya

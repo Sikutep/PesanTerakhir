@@ -81,8 +81,8 @@ export default function Settings({ auth }: Props) {
                 <form onSubmit={submit} className="space-y-6">
                     {/* Section 1: KONEKSI WHATSAPP UTAMA */}
                     <div className="glass-card p-6 rounded-2xl border border-warm-200">
-                        <h2 className="uppercase text-xs text-text-muted font-bold mb-4">
-                            KONEKSI WHATSAPP UTAMA
+                        <h2 className="uppercase text-sm text-text-muted font-bold mb-4">
+                            NOMOR WHATSAPP ANDA
                         </h2>
                         
                         <div className="flex items-center justify-between mb-6">
@@ -91,7 +91,7 @@ export default function Settings({ auth }: Props) {
                                     <span className="text-sage-600 font-bold text-lg">{user.name.charAt(0)}</span>
                                 </div>
                                 <div>
-                                    <div className="text-text-main font-bold">{user.name}</div>
+                                    <div className="text-text-main font-bold text-base">{user.name}</div>
                                     <div className="text-text-muted text-sm flex items-center gap-2">
                                         {user.wa_number || 'Belum ada nomor WA'} 
                                         {user.wa_number ? (
@@ -117,13 +117,13 @@ export default function Settings({ auth }: Props) {
                                         type="text" 
                                         value={data.wa_number} 
                                         onChange={e => setData({...data, wa_number: e.target.value})}
-                                        className="w-full bg-white border border-warm-200 rounded-xl px-4 py-3 text-text-main focus:outline-none focus:ring focus:ring-sage-200 focus:border-sage-400"
+                                        className="w-full bg-white border border-warm-200 rounded-xl px-4 py-4 text-text-main text-base focus:outline-none focus:ring focus:ring-sage-200 focus:border-sage-400"
                                         placeholder="Contoh: 08123456789"
                                     />
                                     {errors.wa_number && <p className="text-rose-alert text-sm mt-1">{errors.wa_number}</p>}
                                 </div>
                             ) : (
-                                <button type="button" onClick={() => setShowWaInput(true)} className="w-full bg-warm-100 border border-warm-200 rounded-xl py-3 text-text-main text-sm font-bold hover:bg-warm-200 transition">
+                                <button type="button" onClick={() => setShowWaInput(true)} className="w-full bg-warm-100 border border-warm-200 rounded-xl py-3 text-text-main text-base font-bold hover:bg-warm-200 transition">
                                     Ubah Nomor
                                 </button>
                             )}
@@ -132,10 +132,10 @@ export default function Settings({ auth }: Props) {
 
                     {/* Section 2: KONTAK WALI / VERIFIKATOR SEKUNDER */}
                     <div className="glass-card p-6 rounded-2xl border border-warm-200">
-                        <h2 className="uppercase text-xs text-text-muted font-bold mb-4">
-                            KONTAK PENDAMPING (OPSIONAL)
+                        <h2 className="uppercase text-sm text-text-muted font-bold mb-4">
+                            KONTAK PENDAMPING (BILA ANDA SULIT DIHUBUNGI)
                         </h2>
-                        <p className="text-sm text-text-muted mb-6">Orang kepercayaan Anda yang bisa mengonfirmasi kabar jika kami tidak bisa menghubungi Anda.</p>
+                        <p className="text-base text-text-muted mb-6">Orang kepercayaan Anda yang bisa mengonfirmasi kabar jika kami tidak bisa menghubungi Anda.</p>
                         
                         <div className="flex flex-col sm:flex-row sm:items-center gap-4 mb-6 pb-6 border-b border-warm-200">
                             <div className="flex items-center gap-4">
@@ -143,7 +143,7 @@ export default function Settings({ auth }: Props) {
                                     <Icon.User />
                                 </div>
                                 <div>
-                                    <div className="text-text-main font-bold">Kontak Pendamping</div>
+                                    <div className="text-text-main font-bold text-base">Kontak Pendamping</div>
                                     <div className="text-text-muted text-sm mt-1">{user.guardian_contact || 'Belum diatur'}</div>
                                 </div>
                             </div>
@@ -158,13 +158,13 @@ export default function Settings({ auth }: Props) {
                                         type="text" 
                                         value={data.guardian_contact} 
                                         onChange={e => setData({...data, guardian_contact: e.target.value})}
-                                        className="w-full bg-white border border-warm-200 rounded-xl px-4 py-3 text-text-main focus:outline-none focus:ring focus:ring-sage-200 focus:border-sage-400"
+                                        className="w-full bg-white border border-warm-200 rounded-xl px-4 py-4 text-text-main text-base focus:outline-none focus:ring focus:ring-sage-200 focus:border-sage-400"
                                         placeholder="Contoh: 08123456789"
                                     />
                                     {errors.guardian_contact && <p className="text-rose-alert text-sm mt-1">{errors.guardian_contact}</p>}
                                 </div>
                             ) : (
-                                <button type="button" onClick={() => setShowGuardianInput(true)} className="w-full bg-warm-100 border border-warm-200 text-text-main rounded-xl py-3 text-sm font-bold flex items-center justify-center gap-2 hover:bg-warm-200 transition">
+                                <button type="button" onClick={() => setShowGuardianInput(true)} className="w-full bg-warm-100 border border-warm-200 text-text-main rounded-xl py-4 text-base font-bold flex items-center justify-center gap-2 hover:bg-warm-200 transition">
                                     <span className="text-lg leading-none">+</span> Tambah Kontak Pendamping
                                 </button>
                             )}
@@ -173,8 +173,8 @@ export default function Settings({ auth }: Props) {
 
                     {/* Section 3: JADWAL NOTIFIKASI PING */}
                     <div className="glass-card p-6 rounded-2xl border border-warm-200">
-                        <h2 className="uppercase text-xs text-text-muted font-bold mb-4">
-                            JADWAL SAPAAN RUTIN
+                        <h2 className="uppercase text-sm text-text-muted font-bold mb-4">
+                            KAPAN ANDA INGIN KAMI MENYAPA ANDA TIAP HARINYA?
                         </h2>
                         
                         <div className="grid grid-cols-3 gap-3 mb-4">
@@ -183,7 +183,7 @@ export default function Settings({ auth }: Props) {
                                     key={schedule.value}
                                     type="button"
                                     onClick={() => setData({...data, ping_schedule: schedule.value})}
-                                    className={`py-3 rounded-xl text-sm font-bold transition ${
+                                    className={`py-4 rounded-xl text-base font-bold transition ${
                                         data.ping_schedule === schedule.value
                                             ? 'bg-sage-100 text-sage-600 border border-sage-300' 
                                             : 'bg-white border border-warm-200 text-text-muted hover:border-warm-300'
@@ -194,7 +194,7 @@ export default function Settings({ auth }: Props) {
                             ))}
                         </div>
                         {errors.ping_schedule && <p className="text-rose-alert text-sm mb-2 text-center">{errors.ping_schedule}</p>}
-                        <p className="text-xs text-text-muted text-center font-bold">
+                        <p className="text-sm text-text-muted text-center font-bold">
                             Kami akan menyapa Anda di WhatsApp pada waktu tersebut.
                         </p>
                     </div>
@@ -202,8 +202,8 @@ export default function Settings({ auth }: Props) {
                     {/* Section 4: Masa Tenggang (Grace Period) */}
                     <div className="glass-card p-6 rounded-2xl border border-warm-200 flex items-center justify-between">
                         <div className="pr-4">
-                            <label htmlFor="grace_period_enabled" className="text-text-main font-bold cursor-pointer">Tunggu Sebelum Mengirim (Masa Tenggang)</label>
-                            <div className="text-text-muted text-sm mt-1">Kami akan menunggu 7 hari lagi jika kami gagal menghubungi Anda, untuk memastikan Anda benar-benar tidak bisa membalas.</div>
+                            <label htmlFor="grace_period_enabled" className="text-text-main font-bold cursor-pointer text-base">Tunggu 7 Hari Tambahan Sebelum Mengirim Pesan</label>
+                            <div className="text-text-muted text-sm mt-1">Beri tambahan waktu jika kami gagal menghubungi Anda, agar pesan tidak terkirim secara prematur.</div>
                         </div>
                         <button 
                             id="grace_period_enabled"
@@ -225,7 +225,7 @@ export default function Settings({ auth }: Props) {
                         <button 
                             type="submit" 
                             disabled={isProcessing}
-                            className="w-full bg-sage-500 hover:bg-sage-600 text-white font-bold py-3.5 px-4 rounded-full transition disabled:opacity-50 flex justify-center items-center gap-2 shadow-sm"
+                            className="w-full bg-sage-500 hover:bg-sage-600 text-white font-bold py-4 px-4 rounded-full transition disabled:opacity-50 flex justify-center items-center gap-2 shadow-sm text-base"
                         >
                             {isProcessing ? 'Menyimpan...' : 'Simpan Pengaturan'}
                         </button>
@@ -234,18 +234,18 @@ export default function Settings({ auth }: Props) {
 
                 {/* Section 5: EMERGENCY OVERRIDE */}
                 <div className="mt-8 glass-card p-6 rounded-2xl bg-rose-50 border border-rose-alert/30">
-                    <h2 className="uppercase text-xs text-rose-alert font-bold mb-2">
-                        UJI COBA SISTEM
+                    <h2 className="uppercase text-sm text-rose-alert font-bold mb-2">
+                        COBA KIRIM PESAN PERCOBAAN
                     </h2>
-                    <p className="text-rose-800 text-sm mb-4">
+                    <p className="text-rose-800 text-base mb-4">
                         Lihat bagaimana pesan akan dikirimkan kepada penerima saat tiba waktunya.
                     </p>
                     <button 
                         type="button"
                         onClick={runEmergency}
-                        className="w-full bg-rose-alert hover:bg-rose-600 text-white font-bold py-3 px-4 rounded-full transition"
+                        className="w-full bg-rose-alert hover:bg-rose-600 text-white font-bold py-4 px-4 rounded-full transition text-base"
                     >
-                        Jalankan Simulasi
+                        Kirim Pesan Percobaan ke Diri Sendiri (Biar tenang)
                     </button>
                 </div>
             </div>

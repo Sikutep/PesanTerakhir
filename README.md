@@ -4,7 +4,16 @@ Aplikasi pengelolaan pesan rahasia otomatis berbasis Laravel 13, React (Inertia.
 
 ---
 
-## 🆕 Update Terbaru (v1.1.0)
+## 🆕 Update Terbaru (v1.1.1)
+Telah dilakukan perbaikan (*hotfix*) dan peningkatan fitur pada sistem integrasi dan media:
+- **Integrasi Fonnte Sinkron (P0)**: Merombak fungsionalitas Simulasi Darurat agar 100% terhubung secara *synchronous* dengan Fonnte API untuk mengirimkan pesan WhatsApp uji coba langsung ke ponsel pengguna tanpa menunggu *Queue Worker*.
+- **Perbaikan Perekaman Media (P1)**: Menyelesaikan *bug* state *viewfinder* kamera yang tidak muncul saat perekaman video.
+- **Manajemen Lampiran (P2)**: Menambahkan antarmuka pemutar *preview* untuk audio dan video yang baru saja direkam.
+- **Manajemen Storage (P1)**: Mengubah direktori unggahan dari `local` disk ke `public` disk agar dapat disajikan melalui Signed URLs tanpa memblokir akses media ahli waris. Menambahkan *flag* untuk menghapus *file* media lama secara permanen (hard-delete).
+
+---
+
+## 🆕 Update Sebelumnya (v1.1.0)
 Telah dilakukan perbaikan massal pada sistem keamanan, stabilitas, dan antarmuka pengguna (UI/UX) berdasarkan hasil audit sistem:
 - **Keamanan (P0 Kritis)**: Perlindungan *dispatch* pesan agar tidak salah sasaran untuk pengguna baru, penyimpanan file rahasia yang dipindah ke *private storage* (`local`), verifikasi PIN penerima menggunakan backend endpoint, dan tautan penerima publik tanpa *auth* menggunakan **Laravel Signed URLs** yang memiliki expiry 72 jam demi keamanan.
 - **Peningkatan Fitur (P1)**: Penambahan input email penerima, penanganan performa memory (audio/video *stream cleanup*), perbaikan validasi format file saat *upload*, dan notifikasi sukses/gagal (Toast/Flash Message).

@@ -73,14 +73,14 @@ export default function RecipientView({ msg, isOwnerPreview }: RecipientViewProp
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-full bg-sage-100 border-4 border-sage-200 mx-auto flex items-center justify-center text-sage-600 mb-4 shadow-sm">
+          <div className="w-20 h-20 rounded-full bg-sage-100 border-4 border-sage-200 mx-auto flex items-center justify-center text-sage-600 mb-4 shadow-sm">
             <Icon.Heart />
           </div>
-          <h1 className="text-2xl font-bold text-text-main mb-2">Sebuah Pesan Untuk Anda</h1>
-          <p className="text-text-muted text-sm px-4">Pesan ini dikirimkan secara otomatis kepada Anda karena pengirim telah menitipkannya di Kotak Kenangan kami.</p>
+          <h1 className="text-3xl font-bold text-text-main mb-3">Halo, {msg.recipient.split(' ')[0]}</h1>
+          <p className="text-text-muted text-base px-4">Seseorang yang sangat menyayangimu telah menitipkan sebuah pesan dan kenangan terakhir untukmu di sini.</p>
           {isOwnerPreview && (
             <div className="mt-4 px-3 py-1.5 bg-warm-200 border border-warm-300 rounded-lg inline-block">
-              <span className="text-xs text-text-main font-bold uppercase tracking-wider">Mode Pratinjau Pemilik</span>
+              <span className="text-sm text-text-main font-bold uppercase tracking-wider">Mode Pratinjau Pemilik</span>
             </div>
           )}
         </div>
@@ -91,37 +91,37 @@ export default function RecipientView({ msg, isOwnerPreview }: RecipientViewProp
               <div className="w-12 h-12 rounded-full bg-sage-50 text-sage-600 mx-auto flex items-center justify-center mb-4">
                 <Icon.Lock />
               </div>
-              <h2 className="text-lg font-bold text-text-main">Pertanyaan Keamanan</h2>
-              <p className="text-sm text-text-muted mt-2">Untuk memastikan pesan ini dibaca oleh orang yang tepat, silakan jawab pertanyaan berikut:</p>
+              <h2 className="text-xl font-bold text-text-main">Satu Langkah Kecil</h2>
+              <p className="text-base text-text-muted mt-2">Untuk memastikan kenangan ini sampai pada orang yang tepat, tolong jawab pertanyaan dari beliau:</p>
             </div>
             
-            <div className="mb-6 p-4 bg-warm-50 rounded-2xl border border-warm-200 text-left">
-              <p className="text-sm font-bold text-text-main italic">"{msg.security_question || 'Masukkan PIN/Kata sandi'}"</p>
+            <div className="mb-6 p-5 bg-warm-50 rounded-2xl border border-warm-200 text-left shadow-inner">
+              <p className="text-base font-bold text-text-main italic">"{msg.security_question || 'Masukkan PIN/Kata sandi'}"</p>
             </div>
 
             <input 
               id="answer-input"
               type="text" 
-              className="w-full bg-white border-2 border-warm-200 rounded-xl px-4 py-4 text-text-main text-center font-bold focus:border-sage-400 focus:ring-0 outline-none mb-2"
-              placeholder="Ketik jawaban Anda..."
+              className="w-full bg-white border-2 border-warm-200 rounded-xl px-4 py-4 text-text-main text-center font-bold focus:border-sage-400 focus:ring-0 outline-none mb-2 text-lg shadow-sm"
+              placeholder="Ketik jawaban Anda di sini..."
               value={answer}
               onChange={e => setAnswer(e.target.value)}
               onKeyDown={e => e.key === 'Enter' && answer && handleUnlock()}
             />
             {answerError && (
-              <p className="text-rose-alert text-sm mb-4 mt-2 font-bold">{answerError}</p>
+              <p className="text-rose-alert text-base mb-4 mt-2 font-bold">{answerError}</p>
             )}
             <button 
               onClick={handleUnlock} 
               disabled={!answer || isVerifying} 
-              className="w-full btn-primary py-4 rounded-xl disabled:opacity-50 mt-4 font-bold shadow-md"
+              className="w-full btn-primary py-4 rounded-xl disabled:opacity-50 mt-4 font-bold text-lg shadow-md"
             >
-              {isVerifying ? 'Memeriksa...' : 'Buka Pesan'}
+              {isVerifying ? 'Membuka...' : 'Buka Pesan Kenangan'}
             </button>
             {isOwnerPreview && (
               <button 
                 onClick={() => setUnlocked(true)} 
-                className="w-full text-text-muted text-sm mt-4 hover:text-text-main transition-colors font-bold"
+                className="w-full text-text-muted text-base mt-4 hover:text-text-main transition-colors font-bold"
               >
                 Lewati Pertanyaan (Mode Pratinjau)
               </button>
