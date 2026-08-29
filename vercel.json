@@ -31,12 +31,6 @@
             "dest": "/api/index.php"
         }
     ],
-    "crons": [
-        {
-            "path": "/api/worker",
-            "schedule": "* * * * *"
-        }
-    ],
     "env": {
         "APP_ENV": "production",
         "APP_DEBUG": "false",
