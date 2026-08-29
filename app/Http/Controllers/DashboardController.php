@@ -74,6 +74,8 @@ class DashboardController extends Controller
                 'hasAudio' => !empty($msg->content_audio_path),
                 'hasVideo' => !empty($msg->content_video_path),
                 'hasDocument' => !empty($msg->content_file_path),
+                'securityQuestion' => $msg->security_question,
+                'securityAnswer' => $msg->security_answer,
                 'pin' => '',
             ];
         });

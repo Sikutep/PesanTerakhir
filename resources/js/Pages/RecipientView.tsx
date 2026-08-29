@@ -17,26 +17,27 @@ interface RecipientViewProps {
     content_audio_path?: string;
     content_video_path?: string;
     content_file_path?: string;
-    has_pin: boolean;
+    has_security: boolean;
+    security_question?: string;
   };
   isOwnerPreview: boolean;
 }
 
 export default function RecipientView({ msg, isOwnerPreview }: RecipientViewProps) {
-  const [pin, setPin] = useState('');
-  const [unlocked, setUnlocked] = useState(!msg.has_pin); // Auto-unlock if no PIN
-  const [pinError, setPinError] = useState('');
+  const [answer, setAnswer] = useState('');
+  const [unlocked, setUnlocked] = useState(!msg.has_security); // Auto-unlock if no security
+  const [answerError, setAnswerError] = useState('');
   const [isVerifying, setIsVerifying] = useState(false);
 
   const handleUnlock = async () => {
     if (isOwnerPreview) {
-      // Owner can bypass PIN for preview
+      // Owner can bypass security for preview
       setUnlocked(true);
       return;
     }
 
     setIsVerifying(true);
-    setPinError('');
+    setAnswerError('');
 
     try {
       const response = await fetch(route('recipient.verifyPin', msg.id), {
@@ -45,7 +46,7 @@ export default function RecipientView({ msg, isOwnerPreview }: RecipientViewProp
           'Content-Type': 'application/json',
           'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') || '',
         },
-        body: JSON.stringify({ pin }),
+        body: JSON.stringify({ answer }),
       });
 
       const data = await response.json();
@@ -53,10 +54,10 @@ export default function RecipientView({ msg, isOwnerPreview }: RecipientViewProp
       if (data.valid) {
         setUnlocked(true);
       } else {
-        setPinError(data.message || 'PIN salah. Silakan coba lagi.');
+        setAnswerError(data.message || 'Jawaban kurang tepat. Silakan coba lagi.');
       }
     } catch {
-      setPinError('Terjadi kesalahan. Silakan coba lagi.');
+      setAnswerError('Terjadi kesalahan. Silakan coba lagi.');
     } finally {
       setIsVerifying(false);
     }
@@ -66,82 +67,92 @@ export default function RecipientView({ msg, isOwnerPreview }: RecipientViewProp
   const types = Array.isArray(msg.types) ? msg.types : Object.values(msg.types || {});
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-[#0B0F19]">
-      <Head title="Pesan Rahasia" />
+    <div className="min-h-screen flex items-center justify-center p-4 bg-warm-50">
+      <Head title="Kotak Kenangan" />
       
       <div className="w-full max-w-md">
         {/* Header */}
         <div className="text-center mb-8">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-500/15 border border-emerald-500/25 mx-auto flex items-center justify-center text-emerald-400 mb-4">
-            <Icon.Lock />
+          <div className="w-16 h-16 rounded-full bg-sage-100 border-4 border-sage-200 mx-auto flex items-center justify-center text-sage-600 mb-4 shadow-sm">
+            <Icon.Heart />
           </div>
-          <h1 className="text-2xl font-serif text-white mb-2">Seseorang Meninggalkan Pesan Untuk Anda</h1>
-          <p className="text-[#94A3B8] text-sm">Pesan ini dikirim secara otomatis karena sistem mendeteksi pengirim tidak aktif selama {msg.triggerDays} hari.</p>
+          <h1 className="text-2xl font-bold text-text-main mb-2">Sebuah Pesan Untuk Anda</h1>
+          <p className="text-text-muted text-sm px-4">Pesan ini dikirimkan secara otomatis kepada Anda karena pengirim telah menitipkannya di Kotak Kenangan kami.</p>
           {isOwnerPreview && (
-            <div className="mt-3 px-3 py-1.5 bg-amber-500/10 border border-amber-500/30 rounded-lg inline-block">
-              <span className="text-[10px] text-amber-400 font-bold uppercase tracking-wider">Mode Preview Pemilik</span>
+            <div className="mt-4 px-3 py-1.5 bg-warm-200 border border-warm-300 rounded-lg inline-block">
+              <span className="text-xs text-text-main font-bold uppercase tracking-wider">Mode Pratinjau Pemilik</span>
             </div>
           )}
         </div>
 
         {!unlocked ? (
-          <div className="glass-card rounded-2xl p-6 text-center fade-in">
-            <p className="text-xs text-[#94A3B8] uppercase font-bold tracking-wider mb-4">Masukkan PIN Rahasia</p>
+          <div className="glass-card rounded-3xl p-8 text-center fade-in border border-warm-200 bg-white shadow-xl">
+            <div className="mb-6">
+              <div className="w-12 h-12 rounded-full bg-sage-50 text-sage-600 mx-auto flex items-center justify-center mb-4">
+                <Icon.Lock />
+              </div>
+              <h2 className="text-lg font-bold text-text-main">Pertanyaan Keamanan</h2>
+              <p className="text-sm text-text-muted mt-2">Untuk memastikan pesan ini dibaca oleh orang yang tepat, silakan jawab pertanyaan berikut:</p>
+            </div>
+            
+            <div className="mb-6 p-4 bg-warm-50 rounded-2xl border border-warm-200 text-left">
+              <p className="text-sm font-bold text-text-main italic">"{msg.security_question || 'Masukkan PIN/Kata sandi'}"</p>
+            </div>
+
             <input 
-              id="pin-input"
-              type="password" 
-              inputMode="numeric"
-              pattern="[0-9]*"
-              className="w-full bg-[#0B0F19] border border-white/10 rounded-xl px-4 py-4 text-white text-2xl tracking-[0.5em] text-center font-mono focus:border-emerald-500 outline-none mb-2"
-              maxLength={6}
-              placeholder="••••••"
-              value={pin}
-              onChange={e => setPin(e.target.value.replace(/\D/g, ''))}
-              onKeyDown={e => e.key === 'Enter' && pin && handleUnlock()}
+              id="answer-input"
+              type="text" 
+              className="w-full bg-white border-2 border-warm-200 rounded-xl px-4 py-4 text-text-main text-center font-bold focus:border-sage-400 focus:ring-0 outline-none mb-2"
+              placeholder="Ketik jawaban Anda..."
+              value={answer}
+              onChange={e => setAnswer(e.target.value)}
+              onKeyDown={e => e.key === 'Enter' && answer && handleUnlock()}
             />
-            {pinError && (
-              <p className="text-rose-400 text-xs mb-4 mt-2">{pinError}</p>
+            {answerError && (
+              <p className="text-rose-alert text-sm mb-4 mt-2 font-bold">{answerError}</p>
             )}
             <button 
               onClick={handleUnlock} 
-              disabled={!pin || isVerifying} 
-              className="w-full btn-primary py-3.5 rounded-xl disabled:opacity-50 mt-4"
+              disabled={!answer || isVerifying} 
+              className="w-full btn-primary py-4 rounded-xl disabled:opacity-50 mt-4 font-bold shadow-md"
             >
-              {isVerifying ? 'Memverifikasi...' : 'Buka Brankas'}
+              {isVerifying ? 'Memeriksa...' : 'Buka Pesan'}
             </button>
             {isOwnerPreview && (
               <button 
                 onClick={() => setUnlocked(true)} 
-                className="w-full text-[#94A3B8] text-xs mt-3 hover:text-white transition-colors"
+                className="w-full text-text-muted text-sm mt-4 hover:text-text-main transition-colors font-bold"
               >
-                Lewati PIN (Mode Preview)
+                Lewati Pertanyaan (Mode Pratinjau)
               </button>
             )}
           </div>
         ) : (
-          <div className="glass-card rounded-2xl p-6 space-y-6 fade-in">
+          <div className="glass-card rounded-3xl p-6 sm:p-8 space-y-6 fade-in border border-warm-200 bg-white shadow-xl">
             {/* Recipient Info */}
-            <div className="flex items-center gap-3 border-b border-white/5 pb-4">
-              <div className="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center font-bold text-white uppercase">
+            <div className="flex items-center gap-4 border-b border-warm-200 pb-6">
+              <div className="w-12 h-12 rounded-full bg-sage-100 flex items-center justify-center font-bold text-sage-700 text-lg uppercase shadow-inner">
                 {msg.recipient.charAt(0)}
               </div>
               <div>
-                <p className="text-xs text-[#94A3B8]">Untuk:</p>
-                <p className="text-sm font-bold text-white">
+                <p className="text-xs font-bold text-text-muted uppercase tracking-wider">UNTUK:</p>
+                <p className="text-lg font-bold text-text-main">
                   {msg.recipient}
-                  {msg.relationship && <span className="text-[#94A3B8] font-normal"> ({msg.relationship})</span>}
+                  {msg.relationship && <span className="text-text-muted font-normal text-sm block">({msg.relationship})</span>}
                 </p>
               </div>
             </div>
 
             {/* Text Content */}
             {msg.content_text && (
-              <div className="bg-[#0B0F19] border border-white/5 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Icon.FileText />
-                  <span className="text-[10px] text-emerald-400 uppercase font-bold tracking-wider">Pesan Teks</span>
+              <div className="bg-warm-50 border border-warm-200 rounded-2xl p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="p-2 bg-sage-100 rounded-lg text-sage-600">
+                    <Icon.FileText />
+                  </div>
+                  <span className="text-sm text-sage-700 font-bold">Pesan Tertulis</span>
                 </div>
-                <p className="text-sm text-white leading-relaxed whitespace-pre-wrap">
+                <p className="text-text-main leading-relaxed whitespace-pre-wrap font-medium">
                   {msg.content_text}
                 </p>
               </div>
@@ -149,12 +160,14 @@ export default function RecipientView({ msg, isOwnerPreview }: RecipientViewProp
 
             {/* Audio Content */}
             {types.includes('Audio') && msg.content_audio_path && (
-              <div className="bg-[#0B0F19] border border-white/5 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Icon.Mic />
-                  <span className="text-[10px] text-amber-400 uppercase font-bold tracking-wider">Pesan Suara</span>
+              <div className="bg-warm-50 border border-warm-200 rounded-2xl p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="p-2 bg-amber-100 rounded-lg text-amber-600">
+                    <Icon.Mic />
+                  </div>
+                  <span className="text-sm text-amber-700 font-bold">Pesan Suara</span>
                 </div>
-                <audio controls className="w-full" style={{ height: '40px' }}>
+                <audio controls className="w-full rounded-full" style={{ height: '44px' }}>
                   <source src={`/storage/${msg.content_audio_path}`} />
                   Browser Anda tidak mendukung pemutaran audio.
                 </audio>
@@ -163,12 +176,14 @@ export default function RecipientView({ msg, isOwnerPreview }: RecipientViewProp
 
             {/* Video Content */}
             {types.includes('Video') && msg.content_video_path && (
-              <div className="bg-[#0B0F19] border border-white/5 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Icon.Video />
-                  <span className="text-[10px] text-purple-400 uppercase font-bold tracking-wider">Pesan Video</span>
+              <div className="bg-warm-50 border border-warm-200 rounded-2xl p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="p-2 bg-purple-100 rounded-lg text-purple-600">
+                    <Icon.Video />
+                  </div>
+                  <span className="text-sm text-purple-700 font-bold">Pesan Video</span>
                 </div>
-                <video controls className="w-full rounded-lg" style={{ maxHeight: '300px' }}>
+                <video controls className="w-full rounded-xl shadow-sm bg-black" style={{ maxHeight: '400px' }}>
                   <source src={`/storage/${msg.content_video_path}`} />
                   Browser Anda tidak mendukung pemutaran video.
                 </video>
@@ -177,22 +192,31 @@ export default function RecipientView({ msg, isOwnerPreview }: RecipientViewProp
 
             {/* Document Content */}
             {types.includes('Dokumen') && msg.content_file_path && (
-              <div className="bg-[#0B0F19] border border-white/5 rounded-xl p-4">
-                <div className="flex items-center gap-2 mb-3">
-                  <Icon.FileText />
-                  <span className="text-[10px] text-blue-400 uppercase font-bold tracking-wider">Lampiran Dokumen</span>
+              <div className="bg-warm-50 border border-warm-200 rounded-2xl p-6">
+                <div className="flex items-center gap-2 mb-4">
+                  <div className="p-2 bg-blue-100 rounded-lg text-blue-600">
+                    <Icon.FileText />
+                  </div>
+                  <span className="text-sm text-blue-700 font-bold">Lampiran Dokumen</span>
                 </div>
                 <a 
                   href={`/storage/${msg.content_file_path}`} 
                   download
-                  className="flex items-center gap-3 p-3 bg-white/5 rounded-lg hover:bg-white/10 transition-colors"
+                  className="flex items-center justify-between p-4 bg-white border border-warm-200 rounded-xl hover:bg-sage-50 transition-colors shadow-sm group"
                 >
-                  <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center text-blue-400">
-                    <Icon.FileText />
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-blue-500 group-hover:scale-110 transition-transform">
+                      <Icon.FileText />
+                    </div>
+                    <div>
+                      <p className="text-sm font-bold text-text-main">Unduh Dokumen</p>
+                      <p className="text-xs text-text-muted">Ketuk untuk menyimpan</p>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-sm font-medium text-white">Unduh Dokumen</p>
-                    <p className="text-[10px] text-[#94A3B8]">Klik untuk mengunduh file</p>
+                  <div className="text-blue-500 bg-blue-50 p-2 rounded-full">
+                    <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                    </svg>
                   </div>
                 </a>
               </div>
@@ -200,18 +224,20 @@ export default function RecipientView({ msg, isOwnerPreview }: RecipientViewProp
 
             {/* No content fallback */}
             {!msg.content_text && types.length === 0 && (
-              <div className="bg-[#0B0F19] border border-white/5 rounded-xl p-4 text-center">
-                <p className="text-sm text-[#94A3B8]">Tidak ada konten pesan.</p>
+              <div className="bg-warm-50 border border-warm-200 rounded-2xl p-8 text-center">
+                <Icon.Heart className="w-8 h-8 text-sage-300 mx-auto mb-2" />
+                <p className="text-sm text-text-muted font-medium">Pesan ini kosong.</p>
               </div>
             )}
 
             {/* Footer */}
-            <div className="text-center space-y-2 pt-4 border-t border-white/5">
-              <p className="text-[10px] text-[#94A3B8] font-mono">
-                Pesan ini dilindungi enkripsi end-to-end.
-              </p>
-              <p className="text-[10px] text-[#94A3B8]">
-                Dibuat: {msg.createdAt} · Trigger: {msg.triggerDays} hari
+            <div className="text-center space-y-3 pt-6 border-t border-warm-200 mt-8">
+              <div className="inline-flex items-center gap-1.5 px-3 py-1 bg-sage-50 text-sage-600 rounded-full text-xs font-bold">
+                <Icon.Shield />
+                <span>Pesan Pribadi & Aman</span>
+              </div>
+              <p className="text-xs text-text-muted">
+                Dititipkan pada: <span className="font-bold">{msg.createdAt}</span>
               </p>
             </div>
 
@@ -219,9 +245,9 @@ export default function RecipientView({ msg, isOwnerPreview }: RecipientViewProp
             {isOwnerPreview && (
               <button 
                 onClick={() => window.history.back()} 
-                className="w-full py-3 rounded-xl bg-white/5 border border-white/10 text-[#94A3B8] hover:text-white hover:bg-white/10 transition-colors text-sm"
+                className="w-full py-4 rounded-xl bg-warm-100 text-text-main font-bold hover:bg-warm-200 transition-colors text-sm mt-6 shadow-sm"
               >
-                ← Kembali ke Brankas
+                ← Kembali ke Kotak Kenangan
               </button>
             )}
           </div>

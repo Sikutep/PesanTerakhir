@@ -24,25 +24,14 @@ class SubscriptionController extends Controller
 
     public function simulatePayment(Request $request)
     {
-        $validated = $request->validate([
-            'plan' => 'required|string|in:annual,five_year,lifetime',
-        ]);
-
-        $planMap = [
-            'annual' => ['amount' => 49000, 'lifetime' => false, 'until' => now()->addYear()],
-            'five_year' => ['amount' => 149000, 'lifetime' => false, 'until' => now()->addYears(5)],
-            'lifetime' => ['amount' => 299000, 'lifetime' => true, 'until' => null],
-        ];
-
-        $plan = $planMap[$validated['plan']];
-
+        // For Sekali Bayar, just create a lifetime subscription
         Subscription::create([
             'user_id' => $request->user()->id,
-            'plan_id' => $validated['plan'],
-            'is_lifetime' => $plan['lifetime'],
-            'active_until' => $plan['until'],
+            'plan_id' => 'lifetime',
+            'is_lifetime' => true,
+            'active_until' => null,
         ]);
 
-        return back()->with('success', 'Pembayaran berhasil! Brankas Anda telah diupgrade.');
+        return back()->with('success', 'Pembayaran berhasil! Akses selamanya ke Ruang Kenangan Anda telah aktif.');
     }
 }

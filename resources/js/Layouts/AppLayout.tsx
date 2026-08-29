@@ -34,7 +34,7 @@ const NavIcon = {
   ),
 };
 
-export default function AppLayout({ children, activeScreen, auth, subscription }: PropsWithChildren<{ activeScreen: string, auth: any, subscription?: string }>) {
+export default function AppLayout({ children, activeScreen, auth, subscription }: PropsWithChildren<{ activeScreen: string, auth: any, subscription?: any }>) {
   const pageProps = usePage().props as any;
   const flash = pageProps.flash as { success?: string; error?: string } | undefined;
   const [toast, setToast] = useState<{ message: string; type: 'success' | 'error' } | null>(null);
@@ -57,7 +57,7 @@ export default function AppLayout({ children, activeScreen, auth, subscription }
   }, [toast]);
 
   const navItems = [
-    { id: "dashboard", label: "Brankas", icon: <NavIcon.LayoutGrid />, route: route('dashboard') },
+    { id: "dashboard", label: "Brankas Pesan", icon: <NavIcon.LayoutGrid />, route: route('dashboard') },
     { id: "settings", label: "Keamanan", icon: <NavIcon.Settings />, route: route('settings') },
     { id: "subscription", label: "Langganan", icon: <NavIcon.CreditCard />, route: route('subscription') },
   ];
@@ -70,42 +70,51 @@ export default function AppLayout({ children, activeScreen, auth, subscription }
   ];
 
   // Determine subscription label
-  const subLabel = subscription || 'Free';
+  let subLabel = 'Sekali Bayar (Gratis)';
+  if (subscription && typeof subscription === 'object') {
+    const planId = (subscription as any).plan_id;
+    if (planId === 'year') subLabel = 'Paket 1 Tahun';
+    else if (planId === 'five') subLabel = 'Paket 5 Tahun';
+    else if (planId === 'lifetime') subLabel = 'Paket Seumur Hidup';
+    else subLabel = 'Premium';
+  } else if (typeof subscription === 'string') {
+    subLabel = subscription;
+  }
 
   return (
-    <div className="flex flex-col md:flex-row h-screen overflow-hidden" style={{ background: "#0B0F19" }}>
+    <div className="flex flex-col md:flex-row h-screen overflow-hidden bg-warm-50">
       {toast && (
         <div className="fixed top-4 left-1/2 -translate-x-1/2 z-50 flex items-center px-4 py-3 rounded-lg shadow-lg border backdrop-blur-md text-sm font-medium transition-all"
           style={{
-            backgroundColor: toast.type === 'success' ? 'rgba(16, 185, 129, 0.1)' : 'rgba(244, 63, 94, 0.1)',
-            borderColor: toast.type === 'success' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(244, 63, 94, 0.2)',
-            color: toast.type === 'success' ? '#10B981' : '#F43F5E'
+            backgroundColor: toast.type === 'success' ? '#F4F7F4' : '#FFF1F2',
+            borderColor: toast.type === 'success' ? '#CDE0CE' : '#FECDD3',
+            color: toast.type === 'success' ? '#436E46' : '#E11D48'
           }}>
           {toast.message}
         </div>
       )}
 
       {/* Desktop sidebar */}
-      <aside className="hidden md:flex flex-col w-56 shrink-0 h-full" style={{ borderRight: "1px solid rgba(255,255,255,0.06)" }}>
+      <aside className="hidden md:flex flex-col w-64 shrink-0 h-full border-r border-warm-200 bg-warm-100">
         {/* Brand */}
-        <div className="px-5 py-6">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-400">
+        <div className="px-6 py-8">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-sage-200 border border-sage-300 flex items-center justify-center text-sage-600">
               <NavIcon.Lock />
             </div>
             <div>
-              <p className="text-sm font-bold text-white leading-none">PesanTerakhir</p>
-              <p className="text-[10px] text-emerald-400 font-mono">.id</p>
+              <p className="text-base font-bold text-text-main leading-none">PesanTerakhir</p>
+              <p className="text-xs text-sage-600 mt-1 font-medium">Kotak Kenangan</p>
             </div>
           </div>
         </div>
 
-        <nav className="flex flex-col gap-1 px-3 flex-1">
+        <nav className="flex flex-col gap-2 px-4 flex-1">
           {navItems.map((item) => (
             <Link
               key={item.id}
               href={item.route}
-              className={`nav-item ${activeScreen === item.id ? "active" : ""} rounded-xl px-3 py-2.5 flex items-center gap-3 text-sm font-medium w-full text-left`}
+              className={`nav-item ${activeScreen === item.id ? "active" : ""} rounded-xl px-4 py-3 flex items-center gap-3 text-sm w-full text-left`}
             >
               {item.icon}
               {item.label}
@@ -114,14 +123,14 @@ export default function AppLayout({ children, activeScreen, auth, subscription }
         </nav>
 
         {/* User footer */}
-        <div className="p-4 border-t border-white/5">
-          <div className="flex items-center gap-3 px-1">
-            <div className="w-8 h-8 rounded-full bg-white/10 flex items-center justify-center text-xs font-bold text-white uppercase">
+        <div className="p-5 border-t border-warm-200">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-full bg-warm-300 flex items-center justify-center text-sm font-bold text-text-main uppercase shadow-sm">
               {auth?.user?.name?.charAt(0) || 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-xs font-medium text-white truncate">{auth?.user?.name || 'User'}</p>
-              <p className="text-[10px] text-emerald-400 font-mono">
+              <p className="text-sm font-bold text-text-main truncate">{auth?.user?.name || 'User'}</p>
+              <p className="text-xs text-sage-600 font-medium truncate">
                 {subLabel}
               </p>
             </div>
@@ -129,7 +138,7 @@ export default function AppLayout({ children, activeScreen, auth, subscription }
               href={route('logout')} 
               method="post" 
               as="button"
-              className="text-[#94A3B8] hover:text-white transition-colors"
+              className="w-8 h-8 flex items-center justify-center rounded-lg text-text-muted hover:bg-warm-200 hover:text-text-main transition-colors"
               title="Logout"
             >
               <NavIcon.LogOut />
@@ -139,18 +148,20 @@ export default function AppLayout({ children, activeScreen, auth, subscription }
       </aside>
 
       {/* Mobile top bar */}
-      <div className="md:hidden flex items-center justify-between p-4" style={{ background: "#0B0F19", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
+      <div className="md:hidden flex items-center justify-between p-4 border-b border-warm-200 bg-warm-100">
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-emerald-400">
+          <div className="w-8 h-8 rounded-lg bg-sage-200 border border-sage-300 flex items-center justify-center text-sage-600">
             <NavIcon.Lock />
           </div>
-          <p className="text-sm font-bold text-white leading-none">PesanTerakhir<span className="text-[10px] text-emerald-400 font-mono">.id</span></p>
+          <div>
+            <p className="text-sm font-bold text-text-main leading-none">PesanTerakhir</p>
+          </div>
         </div>
         <Link 
           href={route('logout')} 
           method="post" 
           as="button"
-          className="text-[#94A3B8] hover:text-white"
+          className="w-8 h-8 flex items-center justify-center rounded-lg text-text-muted hover:bg-warm-200 hover:text-text-main transition-colors"
           title="Logout"
         >
           <NavIcon.LogOut />
@@ -158,14 +169,14 @@ export default function AppLayout({ children, activeScreen, auth, subscription }
       </div>
 
       {/* Mobile bottom nav */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex" style={{ background: "#0B0F19", borderTop: "1px solid rgba(255,255,255,0.07)" }}>
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 flex border-t border-warm-200 bg-warm-100 pb-safe">
         {mobileNavItems.map((item) => (
           item.route ? (
             <Link
               key={item.id}
               href={item.route}
-              className={`flex-1 flex flex-col items-center gap-1 py-3 text-[10px] font-medium transition-colors ${
-                activeScreen === item.id ? "text-emerald-400" : "text-[#94A3B8]"
+              className={`flex-1 flex flex-col items-center gap-1 py-3 text-[11px] font-semibold transition-colors ${
+                activeScreen === item.id ? "text-sage-600 bg-sage-50" : "text-text-muted"
               }`}
             >
               {item.icon}
@@ -174,8 +185,8 @@ export default function AppLayout({ children, activeScreen, auth, subscription }
           ) : (
             <div
               key={item.id}
-              className={`flex-1 flex flex-col items-center gap-1 py-3 text-[10px] font-medium transition-colors ${
-                activeScreen === item.id ? "text-emerald-400" : "text-[#94A3B8]"
+              className={`flex-1 flex flex-col items-center gap-1 py-3 text-[11px] font-semibold transition-colors ${
+                activeScreen === item.id ? "text-sage-600 bg-sage-50" : "text-text-muted"
               }`}
             >
               {item.icon}
@@ -185,7 +196,7 @@ export default function AppLayout({ children, activeScreen, auth, subscription }
         ))}
       </nav>
 
-      <main className="flex-1 overflow-y-auto">
+      <main className="flex-1 overflow-y-auto bg-warm-50">
         <div className="max-w-4xl mx-auto px-4 py-6 md:px-8 md:py-8 pb-28 md:pb-8">
           {children}
         </div>

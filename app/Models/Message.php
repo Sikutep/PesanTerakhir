@@ -14,6 +14,8 @@ class Message extends Model
         'content_file_path',
         'trigger_days',
         'pin_hash',
+        'security_question',
+        'security_answer',
         'status',
     ];
 

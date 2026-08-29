@@ -47,9 +47,22 @@ class SettingsController extends Controller
             return back()->with('error', 'Tidak ada pesan aktif untuk dikirimkan.');
         }
 
-        // Mark as simulation (don't actually dispatch via WA in simulation mode)
-        $count = $messages->count();
+        if (empty($user->wa_number)) {
+            return back()->with('error', 'Gagal simulasi: Nomor WhatsApp Anda belum diatur.');
+        }
 
-        return back()->with('success', "Simulasi darurat berhasil! {$count} pesan telah disimulasikan pengirimannya ke kontak tujuan.");
+        $count = $messages->count();
+        $sampleRecipient = $messages->first()->recipients()->first();
+        $recipientName = $sampleRecipient ? $sampleRecipient->name : '[Nama Penerima]';
+
+        $text = "PesanTerakhir.id — [MODE SIMULASI]\n\nHalo {$recipientName},\n\nSeseorang bernama {$user->name} telah meninggalkan pesan rahasia untuk Anda. Ini adalah *contoh* tampilan pesan jika Anda gagal merespons sistem melewati masa tenggang.\n\nLink rahasia akan dilampirkan di sini, dan sistem akan mengamankannya dengan Pertanyaan Keamanan/PIN jika Anda mengaturnya.\n\nSimulasi selesai.";
+        
+        try {
+            \App\Jobs\SendWhatsAppMessageJob::dispatchSync($text, null, null, $user->wa_number);
+        } catch (\Exception $e) {
+            return back()->with('error', 'Simulasi gagal dikirim via WhatsApp. Pastikan token valid dan nomor Anda benar.');
+        }
+
+        return back()->with('success', "Simulasi berhasil! Contoh pesan telah dikirimkan ke WhatsApp Anda ({$user->wa_number}).");
     }
 }
